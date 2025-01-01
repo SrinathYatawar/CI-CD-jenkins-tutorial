@@ -7,20 +7,21 @@ pipeline {
     }
     
     tools {
-        nodejs "NodeJS"  // This must match exactly the name you gave in Jenkins configuration
+        nodejs "NodeJS"  // Exactly matching your Jenkins configuration
     }
-
     
     stages {
-        // First verify NodeJS installation
         stage('Verify Setup') {
             steps {
+                // Explicitly verify node installation
                 bat 'node --version'
                 bat 'npm --version'
+                // Install netlify-cli globally with specific error handling
+                bat 'npm install -g netlify-cli --no-fund --no-audit'
             }
         }
-
-         stage('Verify Credentials') {
+        
+        stage('Verify Credentials') {
             steps {
                 script {
                     if (env.NETLIFY_AUTH_TOKEN == null || env.NETLIFY_SITE_ID == null) {
@@ -39,7 +40,10 @@ pipeline {
         
         stage('Install Dependencies') {
             steps {
-                bat 'npm install'
+                // Clean npm cache and verify node modules
+                bat 'npm cache clean --force'
+                bat 'rmdir /s /q node_modules' 
+                bat 'npm install --verbose'
             }
         }
         
@@ -51,7 +55,16 @@ pipeline {
         
         stage('Deploy to Netlify') {
             steps {
-                bat 'npx netlify deploy --prod --dir=build --site %NETLIFY_SITE_ID%'
+                // Verify build directory exists
+                bat 'if not exist "build" exit 1'
+                
+                // Use environment variables properly
+                withEnv(["NETLIFY_AUTH_TOKEN=${env.NETLIFY_AUTH_TOKEN}", 
+                        "NETLIFY_SITE_ID=${env.NETLIFY_SITE_ID}"]) {
+                    bat '''
+                        npx netlify-cli deploy --prod --dir=build --auth %NETLIFY_AUTH_TOKEN% --site %NETLIFY_SITE_ID%
+                    '''
+                }
             }
         }
     }
@@ -62,6 +75,9 @@ pipeline {
         }
         failure {
             echo 'Deployment failed.'
+            // Add error logging
+            bat 'npm config list'
+            bat 'netlify-cli -v'
         }
     }
 }
