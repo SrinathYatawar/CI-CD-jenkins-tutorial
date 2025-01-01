@@ -20,11 +20,14 @@ pipeline {
             }
         }
 
-       stage('Verify Credentials') {
+         stage('Verify Credentials') {
             steps {
-                echo "Testing Netlify credentials..."
-                echo "Site ID is configured: ${NETLIFY_SITE_ID != null}"
-                echo "Auth Token is configured: ${NETLIFY_AUTH_TOKEN != null}"
+                script {
+                    if (env.NETLIFY_AUTH_TOKEN == null || env.NETLIFY_SITE_ID == null) {
+                        error "Credentials not found"
+                    }
+                    echo "Credentials loaded successfully"
+                }
             }
         }
         
