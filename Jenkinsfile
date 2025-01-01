@@ -16,8 +16,6 @@ pipeline {
                 // Explicitly verify node installation
                 bat 'node --version'
                 bat 'npm --version'
-                // Install netlify-cli globally with specific error handling
-                bat 'npm install -g netlify-cli --no-fund --no-audit'
             }
         }
         
@@ -40,9 +38,6 @@ pipeline {
         
         stage('Install Dependencies') {
             steps {
-                // Clean npm cache and verify node modules
-                bat 'npm cache clean --force'
-                bat 'rmdir /s /q node_modules' 
                 bat 'npm install --verbose'
             }
         }
