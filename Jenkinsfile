@@ -7,13 +7,12 @@ pipeline {
     }
     
     tools {
-        nodejs "NodeJS"  // Exactly matching your Jenkins configuration
+        nodejs "NodeJS"
     }
     
     stages {
         stage('Verify Setup') {
             steps {
-                // Explicitly verify node installation
                 bat 'node --version'
                 bat 'npm --version'
             }
